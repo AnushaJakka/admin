@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -15,7 +15,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Icon from '@/src/utils/Icon'; // Ensure this path is correct for your Icon component
-import OtpInput from 'react-otp-input'
+import OtpInput from 'react-otp-input';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 const LoginPage = () => {
@@ -41,6 +41,7 @@ const LoginPage = () => {
     },
   });
 
+  
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -52,7 +53,15 @@ const LoginPage = () => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [otpError, setOtpError] = useState('');
+  const [resendTimer, setResendTimer] = useState(30);
   const router = useRouter();
+
+  useEffect(() => {
+    if (resendTimer > 0 && otpSent) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendTimer, otpSent]);
 
   const validateForm = () => {
     let isValid = true;
@@ -89,7 +98,7 @@ const LoginPage = () => {
     return isValid;
   };
 
-  const handleSubmit =  (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
@@ -106,12 +115,11 @@ const LoginPage = () => {
     }
   };
 
-  const handleOtpSubmit =  (e: React.FormEvent) => {
+  const handleOtpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length !== 6){
-      setOtpError('Otp must be 6 digits');
-      
-    }else if (otp === '123456') {
+    if (otp.length !== 6) {
+      setOtpError('OTP must be 6 digits');
+    } else if (otp === '123456') {
       setError('OTP verified successfully');
       setOpen(true);
       router.push('/dashboard');
@@ -159,15 +167,15 @@ const LoginPage = () => {
                 color: 'black',
               }}
             >
-              <Box display="flex" flexDirection="row" alignItems="center" justifyContent="center" mb={3}>
-                <LockOutlinedIcon sx={{ fontSize: '30px', color: 'black', marginRight: 1 }} />
-                <Typography variant="h6" fontWeight="bold" color="black" textAlign="center">
+              <Box display="flex" flexDirection="row" alignItems="center" justifyContent="center" mb={3} >
+                <LockOutlinedIcon sx={{ fontSize: '22px', color: 'black', marginRight: 1 }} />
+                <Typography fontSize="17px" fontWeight="bold" color="black" textAlign="center">
                   Login to Admin Portal
                 </Typography>
               </Box>
 
               <form noValidate onSubmit={handleSubmit}>
-                <FormControl fullWidth sx={{ pb: 4 }}>
+                <FormControl fullWidth sx={{ pb: 3 }}>
                   <TextField
                     label="Email Address"
                     value={email}
@@ -175,41 +183,45 @@ const LoginPage = () => {
                     error={Boolean(emailError)}
                     helperText={emailError}
                     autoComplete="off"
-                    InputLabelProps={{
-                      sx: {
-                        color: 'black',
-                        top: '-15%',
-                      },
-                    }}
+                    size='small'
+                    // InputLabelProps={{
+                    //   sx: {
+                    //     color: 'black',
+                    //      top: '-15%',
+                    //    },
+                    // }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
+                        borderRadius: '10px',
                         height: '40px',
                         color: 'black',
                       },
-                      '& .MuiFormHelperText-root': {
-                        color: 'black',
-                      },
+                      // '& .MuiFormHelperText-root': {
+                      //   color: 'black',
+                      // },
                     }}
                     fullWidth
                   />
                 </FormControl>
 
-                <FormControl fullWidth sx={{ pb: 4 }}>
+                <FormControl fullWidth sx={{ pb: 3 }}>
                   <TextField
-                    label="Password"
+              label={'Password\u00A0\u00A0'}
+
+
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     type={showPassword ? 'text' : 'password'}
                     error={Boolean(passwordError)}
                     helperText={passwordError}
                     autoComplete="off"
-                    InputLabelProps={{
-                      sx: {
-                        top: '-15%',
-                        color: 'black',
-                      },
-                    }}
+                    size='small'
+                    // InputLabelProps={{
+                    //   sx: {
+                       
+                    //     color: 'black',
+                    //   },
+                    // }}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -222,12 +234,12 @@ const LoginPage = () => {
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
+                        borderRadius: '10px',
                         height: '40px',
                       },
-                      '& .MuiFormHelperText-root': {
-                        color: 'black',
-                      },
+                      // '& .MuiFormHelperText-root': {
+                      //   color: 'black',
+                      // },
                     }}
                     fullWidth
                   />
@@ -243,8 +255,7 @@ const LoginPage = () => {
                     height: '40px',
                     color: '#fff',
                     fontWeight: 'bold',
-                    borderRadius: '12px',
-                   
+                    borderRadius: '10px',
                   }}
                 >
                   {loading ? 'Logging in...' : 'Login'}
@@ -276,67 +287,177 @@ const LoginPage = () => {
           </>
         ) : (
           <Paper
-            elevation={10}
-            sx={{
-              p: 4,
-              px:0,
-              borderRadius: 6,
-              maxWidth: 440,
-              width: '330px',
-              backdropFilter: 'blur(10px)',
-              backgroundColor: 'white',
-              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)',
-              border: ' solid rgba(255, 255, 255, 0.3)',
-              color: 'white',
-            }}
-          >
-            <form noValidate onSubmit={handleOtpSubmit}>
-              <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" mb={2}>
-                <Typography variant="h6" fontWeight="bold" color="black" textAlign="center">
-                  Enter OTP
-                </Typography>
-              </Box>
-              <Box display= 'flex' flexDirection="column" alignItems='center' mb={3}>
-              <OtpInput
-        numInputs={6}
-        value={otp}
-        
-        onChange={handleOtpChange}
-        renderInput={(props) =>( <input {...props} style={{ 
-          width: '40px',backgroundColor: 'whitesmoke', color: "black", height: '40px', margin: '0 3px', textAlign: 'center', fontSize: '1.3rem', borderRadius: '10px', border: '2px solid #ddd', outline: 'none', }}
-          onFocus={(e)=> e.target.style.borderColor = 'rgb(96, 143, 201)'}
-          onBlur = {(e) => e.target.style.borderColor= '#ddd'}
-          />
-        )}
-        />
+          elevation={10}
+          sx={{
+            p: 4,
+            borderRadius: 6,
+            maxWidth: 500,
+            width: '100%',
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: '0 15px 35px rgba(0, 0, 0, 0.25)'
+            }
+          }}
+        >
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Box 
+              sx={{
+                bgcolor: 'rgb(14, 125, 236)',
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 3,
+                boxShadow: '0 4px 12px rgba(14, 125, 236, 0.3)'
+              }}
+            >
+              <Icon icon="mdi:email-check-outline" style={{ color: 'white', fontSize: '2rem' }} />
+            </Box>
+            
+            <Typography variant="h5" fontWeight="bold" color="text.primary" mb={1}>
+              OTP Verification
+            </Typography>
+            
+            <Typography
+variant="body2"
+color="text.secondary"
+textAlign="center"
+mb={3}
+>
+We've sent a 6-digit verification code to{' '}
+<Box
+  component="span"
+  sx={{
+    color: 'rgb(14, 125, 236)',
+    fontWeight: 'bold',
+    textDecoration: 'underline',
+    cursor: 'pointer',
+    '&:hover': { opacity: 0.8 },
+  }}
+  onClick={() => setOtpSent(false)}
+>
+  {email}
+</Box>
+</Typography><Box width="100%" mb={2}>
+  <OtpInput
+    numInputs={6}
+    value={otp}
+    onChange={handleOtpChange}
+    renderInput={(props) => (
+      <input 
+        {...props} 
+        style={{ 
+          width: 'clamp(35px, 8vw, 45px)',
+          height: 'clamp(35px, 8vw, 45px)',
+          backgroundColor: '#f5f7fa', 
+          color: "black", 
+          margin: '0 clamp(3px, 1vw, 5px)', 
+          textAlign: 'center', 
+          fontSize: 'clamp(1rem, 4vw, 1.3rem)', 
+          borderRadius: '8px', 
+          border: otpError ? '2px solid #f44336' : '1px solid #e0e0e0',
+          outline: 'none',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = 'rgb(14, 125, 236)';
+          e.target.style.boxShadow = '0 0 0 2px rgba(14, 125, 236, 0.2)';
+        }}
+        onBlur = {(e) => {
+          e.target.style.borderColor = otpError ? '#f44336' : '#e0e0e0';
+          e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+        }}
+      />
+    )}
+    containerStyle={{
+      justifyContent: 'center',
+      marginBottom: '10px',
+      padding: '0 10px'
+    }}
+  />
 
-  {otpError && <Typography color="error">{otpError}</Typography>}
+  {otpError && (
+    <Typography color="error" variant="caption" textAlign="center" display="block" mt={1}>
+      {otpError}
+    </Typography>
+  )}
+</Box>
 
-              </Box>
-             
-
-
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleOtpSubmit}
-                type='submit'
-                sx={{
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOtpSubmit}
+              type="submit"
+              fullWidth
+              sx={{
+                bgcolor: 'rgb(66, 74, 84)',
+                height: '45px',
+                color: '#fff',
+                fontWeight: 'bold',
+                borderRadius: '10px',
+                fontSize: '1rem',
+                textTransform: 'none',
+                mb: 1,
+                '&:hover': {
                   bgcolor: 'rgb(66, 74, 84)',
-                  width: '250px',
-                  height: '40px',
-                  color: '#fff',
-                  fontWeight: 'bold',
-                  borderRadius: '12px',
-                  display: 'block',
-                  margin: '0 auto',
-               
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(128, 130, 133, 0.3)'
+                }
+              }}
+            >
+              Verify & Continue
+            </Button>
+
+            <Box display="flex" justifyContent="space-between" width="100%" mt={2}>
+              <Typography
+                variant="body2"
+                color="rgb(14, 125, 236)"
+                sx={{
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
                 }}
+                onClick={() => setOtpSent(false)}
               >
-                Verify OTP
-              </Button>
-            </form>
-          </Paper>
+                Change email
+              </Typography>
+              
+              {resendTimer > 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  Resend OTP in {resendTimer}s
+                </Typography>
+              ) : (
+                <Typography
+                  variant="body2"
+                  color="rgb(14, 125, 236)"
+                  sx={{
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    '&:hover': {
+                      textDecoration: 'underline'
+                    }
+                  }}
+                  onClick={() => {
+                    setError('New OTP sent to your email');
+                    setOpen(true);
+                    setResendTimer(30);
+                  }}
+                >
+                  Resend OTP
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        </Paper>
         )}
 
         <Snackbar
